@@ -110,24 +110,23 @@ def Execute(data):
                 wasChanged = True
             elif data.GetParam(2).lower() == "orange":
                 Parent.PutRequest(righturl, {}, {"hue": 5000}, isJsonContent)
-                wasChanged = True
-           
+                wasChanged = True  
         elif data.GetParam(1).lower() == "list":
             Parent.SendStreamMessage("Available Colors Are: blue, red, yellow, green, cyan, purple, orange, pink.")
         elif data.GetParam(1).lower() == "help":
             Parent.SendStreamMessage("How to use: !light ('left' or 'right') ('color')")
         else:
-            Parend.SendStreamMessage("Sorry that is not a valid option, please ")
+            Parent.SendStreamMessage("Sorry that is not a valid option, please ")
         
-        if wasChanged:
-            Parent.AddUserCooldown(ScriptName,ScriptSettings.Command,data.User,ScriptSettings.Cooldown)  # Put the command on cooldown
+        if wasChanged == True:
+            Parent.SendStreamMessage(ScriptSettings.Response + Parent.GetDisplayName(data.User))  
+        Parent.AddUserCooldown(ScriptName,ScriptSettings.Command,data.User,ScriptSettings.Cooldown)  # Put the command on cooldown
     return
 
 #---------------------------
 #   [Required] Tick method (Gets called during every iteration even when there is no incoming data)
 #---------------------------
 def Tick():
-    Parent.SendStreamWhisper("DariusVerdon", "A Tick has happened")
     return
 
 #---------------------------
