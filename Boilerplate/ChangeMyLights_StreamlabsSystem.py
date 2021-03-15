@@ -62,55 +62,40 @@ def Execute(data):
         
         if data.GetParam(1).lower() == "left":
             if data.GetParam(2).lower() == "pink":
-                Parent.PutRequest(lefturl, {}, {"hue": 60000}, isJsonContent)
-                wasChanged = True
+                ChangeHue(lefturl, 60000)
             elif data.GetParam(2).lower() == "blue":
-                Parent.PutRequest(lefturl, {}, {"hue": 45000}, isJsonContent)
-                wasChanged = True
+                ChangeHue(lefturl, 45000)
             elif data.GetParam(2).lower() == "red":
-                Parent.PutRequest(lefturl, {}, {"hue": 65000}, isJsonContent)
-                wasChanged = True
+                ChangeHue(lefturl, 65000)
             elif data.GetParam(2).lower() == "yellow":
-                Parent.PutRequest(lefturl, {}, {"hue": 10000}, isJsonContent)
-                wasChanged = True
+                ChangeHue(lefturl, 10000)
             elif data.GetParam(2).lower() == "green":
-                Parent.PutRequest(lefturl, {}, {"hue": 30000}, isJsonContent)
-                wasChanged = True
+                ChangeHue(lefturl, 30000)
             elif data.GetParam(2).lower() == "cyan":
-                Parent.PutRequest(lefturl, {}, {"hue": 40000}, isJsonContent)
-                wasChanged = True
+                ChangeHue(lefturl, 40000)
             elif data.GetParam(2).lower() == "purple":
-                Parent.PutRequest(lefturl, {}, {"hue": 50000}, isJsonContent)
-                wasChanged = True
+                ChangeHue(lefturl, 50000)
             elif data.GetParam(2).lower() == "orange":
-                Parent.PutRequest(lefturl, {}, {"hue": 5000}, isJsonContent)
-                wasChanged = True
+                ChangeHue(lefturl, 5000)
             
         elif data.GetParam(1).lower() == "right":
             if data.GetParam(2).lower() == "pink":
-                Parent.PutRequest(righturl, {}, {"hue": 60000}, isJsonContent)
-                wasChanged = True
+                ChangeHue(righturl, 60000)
             elif data.GetParam(2).lower() == "blue":
-                Parent.PutRequest(righturl, {}, {"hue": 45000}, isJsonContent)
-                wasChanged = True
+                ChangeHue(righturl, 45000)
             elif data.GetParam(2).lower() == "red":
-                Parent.PutRequest(righturl, {}, {"hue": 65000}, isJsonContent)
-                wasChanged = True
+                ChangeHue(righturl, 65000)
             elif data.GetParam(2).lower() == "yellow":
-                Parent.PutRequest(righturl, {}, {"hue": 10000}, isJsonContent)
-                wasChanged = True
+                ChangeHue(righturl, 10000)
             elif data.GetParam(2).lower() == "green":
-                Parent.PutRequest(righturl, {}, {"hue": 30000}, isJsonContent)
-                wasChanged = True
+                ChangeHue(righturl, 30000)
             elif data.GetParam(2).lower() == "cyan":
-                Parent.PutRequest(righturl, {}, {"hue": 40000}, isJsonContent)
-                wasChanged = True
+                ChangeHue(righturl, 40000)
             elif data.GetParam(2).lower() == "purple":
-                Parent.PutRequest(righturl, {}, {"hue": 50000}, isJsonContent)
-                wasChanged = True
+                ChangeHue(righturl, 50000)
             elif data.GetParam(2).lower() == "orange":
-                Parent.PutRequest(righturl, {}, {"hue": 5000}, isJsonContent)
-                wasChanged = True  
+                ChangeHue(righturl, 5000)
+                    
         elif data.GetParam(1).lower() == "list":
             Parent.SendStreamMessage("Available Colors Are: blue, red, yellow, green, cyan, purple, orange, pink.")
         elif data.GetParam(1).lower() == "help":
@@ -159,3 +144,7 @@ def Unload():
 #---------------------------
 def ScriptToggled(state):
     return
+
+def ChangeHue(url, hue):
+    Parent.PutRequest(url, {}, {"hue": hue}, isJsonContent)
+    wasChanged = True
