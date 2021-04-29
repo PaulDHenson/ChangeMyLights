@@ -6,9 +6,6 @@ import sys
 import json
 
 sys.path.append(os.path.join(os.path.dirname(__file__), "lib")) #point at lib folder for classes / references
-lefturl = "http://192.168.1.9/api/vXwABODAYg1B03Uz15m2t12-7gxAUzejMupRudhF/lights/10/state"
-righturl = "http://192.168.1.9/api/vXwABODAYg1B03Uz15m2t12-7gxAUzejMupRudhF/lights/11/state"
-wasChanged = False
 import clr
 clr.AddReference("IronPython.SQLite.dll")
 clr.AddReference("IronPython.Modules.dll")
@@ -52,75 +49,56 @@ def Init():
 #   [Required] Execute Data / Process messages
 #---------------------------
 def Execute(data):
-    
-    if data.IsChatMessage() and data.GetParam(0).lower() == ScriptSettings.Command and Parent.IsOnUserCooldown(ScriptName,ScriptSettings.Command,data.User):
+
+    #Don't fire if wasn't a chat message or command doesn't match
+    if not data.IsChatMessage() or data.GetParam(0).lower() != ScriptSettings.Command:
+        return
+
+    #If user is on cooldown, send message and return
+    if Parent.IsOnUserCooldown(ScriptName,ScriptSettings.Command,data.User):
         Parent.SendStreamMessage("Time Remaining " + str(Parent.GetUserCooldownDuration(ScriptName,ScriptSettings.Command,data.User)))
+        return
+
+    #Masterlist of Colors
+    colors = { "pink": 60000,
+            "blue": 45000,
+            "red": 65000,
+            "yellow": 10000,
+            "green": 30000,
+            "cyan": 40000,
+            "purple": 50000,
+            "orange": 5000 }
+
+    baseurl = "http://192.168.1.9/api/vXwABODAYg1B03Uz15m2t12-7gxAUzejMupRudhF/lights/"
+
+    #Masterlist of lights
+    lights = { "left" : baseurl + "10/state", "right" : baseurl + "11/state" }
+    
 
     #   Check if the propper command is used, the command is not on cooldown and the user has permission to use the command
-    if data.IsChatMessage() and data.GetParam(0).lower() == ScriptSettings.Command and not Parent.IsOnUserCooldown(ScriptName,ScriptSettings.Command,data.User) and Parent.HasPermission(data.User,ScriptSettings.Permission,ScriptSettings.Info):
+    if Parent.HasPermission(data.User,ScriptSettings.Permission,ScriptSettings.Info):
         Parent.BroadcastWsEvent("EVENT_MINE","{'show':false}")
+
+        light = data.GetParam(1).lower()
+
+        if light in lights:
+            lighturl = lights[light]
+            color = data.GetParam(2).lower()
+            Parent.PutRequest(lighturl, {}, {"hue": color}, isJsonContent)
+
+            #Assume success -- Put user on timeout
+            Parent.SendStreamMessage(ScriptSettings.Response + Parent.GetDisplayName(data.User))  
+            Parent.AddUserCooldown(ScriptName,ScriptSettings.Command,data.User,ScriptSettings.Cooldown)  # Put the command on cooldown
         
-        if data.GetParam(1).lower() == "left":
-            if data.GetParam(2).lower() == "pink":
-                Parent.PutRequest(lefturl, {}, {"hue": 60000}, isJsonContent)
-                wasChanged = True
-            elif data.GetParam(2).lower() == "blue":
-                Parent.PutRequest(lefturl, {}, {"hue": 45000}, isJsonContent)
-                wasChanged = True
-            elif data.GetParam(2).lower() == "red":
-                Parent.PutRequest(lefturl, {}, {"hue": 65000}, isJsonContent)
-                wasChanged = True
-            elif data.GetParam(2).lower() == "yellow":
-                Parent.PutRequest(lefturl, {}, {"hue": 10000}, isJsonContent)
-                wasChanged = True
-            elif data.GetParam(2).lower() == "green":
-                Parent.PutRequest(lefturl, {}, {"hue": 30000}, isJsonContent)
-                wasChanged = True
-            elif data.GetParam(2).lower() == "cyan":
-                Parent.PutRequest(lefturl, {}, {"hue": 40000}, isJsonContent)
-                wasChanged = True
-            elif data.GetParam(2).lower() == "purple":
-                Parent.PutRequest(lefturl, {}, {"hue": 50000}, isJsonContent)
-                wasChanged = True
-            elif data.GetParam(2).lower() == "orange":
-                Parent.PutRequest(lefturl, {}, {"hue": 5000}, isJsonContent)
-                wasChanged = True
-            
-        elif data.GetParam(1).lower() == "right":
-            if data.GetParam(2).lower() == "pink":
-                Parent.PutRequest(righturl, {}, {"hue": 60000}, isJsonContent)
-                wasChanged = True
-            elif data.GetParam(2).lower() == "blue":
-                Parent.PutRequest(righturl, {}, {"hue": 45000}, isJsonContent)
-                wasChanged = True
-            elif data.GetParam(2).lower() == "red":
-                Parent.PutRequest(righturl, {}, {"hue": 65000}, isJsonContent)
-                wasChanged = True
-            elif data.GetParam(2).lower() == "yellow":
-                Parent.PutRequest(righturl, {}, {"hue": 10000}, isJsonContent)
-                wasChanged = True
-            elif data.GetParam(2).lower() == "green":
-                Parent.PutRequest(righturl, {}, {"hue": 30000}, isJsonContent)
-                wasChanged = True
-            elif data.GetParam(2).lower() == "cyan":
-                Parent.PutRequest(righturl, {}, {"hue": 40000}, isJsonContent)
-                wasChanged = True
-            elif data.GetParam(2).lower() == "purple":
-                Parent.PutRequest(righturl, {}, {"hue": 50000}, isJsonContent)
-                wasChanged = True
-            elif data.GetParam(2).lower() == "orange":
-                Parent.PutRequest(righturl, {}, {"hue": 5000}, isJsonContent)
-                wasChanged = True  
-        elif data.GetParam(1).lower() == "list":
-            Parent.SendStreamMessage("Available Colors Are: blue, red, yellow, green, cyan, purple, orange, pink.")
-        elif data.GetParam(1).lower() == "help":
-            Parent.SendStreamMessage("How to use: !light ('left' or 'right') ('color')")
+        elif light == "list":
+            Parent.SendStreamMessage("Available Colors Are: " + ', '.join([i for i in colors.keys()]))
+
+        elif light == "help":
+            Parent.SendStreamMessage("How to use: !light (" + ' or '.join([i for i in lights.keys()]) + ") ('color')")
+
         else:
             Parent.SendStreamMessage("Sorry that is not a valid option, please ")
         
-        if wasChanged == True:
-            Parent.SendStreamMessage(ScriptSettings.Response + Parent.GetDisplayName(data.User))  
-        Parent.AddUserCooldown(ScriptName,ScriptSettings.Command,data.User,ScriptSettings.Cooldown)  # Put the command on cooldown
     return
 
 #---------------------------
