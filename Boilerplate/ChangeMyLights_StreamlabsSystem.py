@@ -51,7 +51,7 @@ def Init():
 def Execute(data):
 
     #Don't fire if wasn't a chat message or command doesn't match
-    if not data.IsChatMessage() or data.GetParam(0).lower() == ScriptSettings.Command:
+    if not data.IsChatMessage() or data.GetParam(0).lower() != ScriptSettings.Command:
         return
 
     #If user is on cooldown, send message and return
