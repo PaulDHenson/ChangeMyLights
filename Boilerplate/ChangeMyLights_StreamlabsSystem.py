@@ -6,9 +6,6 @@ import sys
 import json
 
 sys.path.append(os.path.join(os.path.dirname(__file__), "lib")) #point at lib folder for classes / references
-lefturl = "http://192.168.1.9/api/vXwABODAYg1B03Uz15m2t12-7gxAUzejMupRudhF/lights/10/state"
-righturl = "http://192.168.1.9/api/vXwABODAYg1B03Uz15m2t12-7gxAUzejMupRudhF/lights/11/state"
-wasChanged = False
 import clr
 clr.AddReference("IronPython.SQLite.dll")
 clr.AddReference("IronPython.Modules.dll")
@@ -72,8 +69,10 @@ def Execute(data):
             "purple": 50000,
             "orange": 5000 }
 
+    baseurl = "http://192.168.1.9/api/vXwABODAYg1B03Uz15m2t12-7gxAUzejMupRudhF/lights/"
+
     #Masterlist of lights
-    lights = { "left" : lefturl, "right" : righturl }
+    lights = { "left" : baseurl + "10/state", "right" : baseurl + "11/state" }
     
 
     #   Check if the propper command is used, the command is not on cooldown and the user has permission to use the command
