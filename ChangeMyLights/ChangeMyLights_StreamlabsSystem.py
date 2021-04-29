@@ -68,7 +68,7 @@ def Execute(data):
             "cyan": 40000,
             "purple": 50000,
             "orange": 5000,
-            "random" : Parent.Random(0, 65535)}
+            "random" : Parent.GetRandom(0, 65535)}
 
     baseurl = "http://192.168.1.2/api/vXwABODAYg1B03Uz15m2t12-7gxAUzejMupRudhF/lights/"
 
