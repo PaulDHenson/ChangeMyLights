@@ -84,13 +84,20 @@ def Execute(data):
 
         if light in lights:
             lighturl = lights[light]
-            color = colors[data.GetParam(2).lower()]
+            color = data.GetParam(2).lower()
+            if color in colors:
+                color = colors[color]
+
+            if not color.isdigit():
+                Parent.SendStreamMessage("Sorry that is not a valid option, please try again")
+                return
+
             Parent.PutRequest(lighturl, {}, {"hue": color}, isJsonContent)
 
             #Assume success -- Put user on timeout
             Parent.SendStreamMessage(ScriptSettings.Response + Parent.GetDisplayName(data.User))  
             Parent.AddUserCooldown(ScriptName,ScriptSettings.Command,data.User,ScriptSettings.Cooldown)  # Put the command on cooldown
-        
+
         elif light == "list":
             Parent.SendStreamMessage("Available Colors Are: " + ', '.join([i for i in colors.keys()]))
 
@@ -98,7 +105,7 @@ def Execute(data):
             Parent.SendStreamMessage("How to use: !light (" + ' or '.join([i for i in lights.keys()]) + ") ('color')")
 
         else:
-            Parent.SendStreamMessage("Sorry that is not a valid option, please ")
+            Parent.SendStreamMessage("Sorry that is not a valid option, please try again")
         
     return
 
