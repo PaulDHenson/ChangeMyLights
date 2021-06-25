@@ -19,7 +19,7 @@ ScriptName = "ChangeMyLights"
 Website = "https://www.streamlabs.com"
 Description = "!light [<left> | <right>] [<color>] will change the designated lights color."
 Creator = "PaulDHenson"
-Version = "2.0.0.1"
+Version = "2.0.0.2"
 isJsonContent = True
 #---------------------------
 #   Define Global Variables
@@ -49,58 +49,69 @@ def Init():
 #   [Required] Execute Data / Process messages
 #---------------------------
 def Execute(data):
-
+    commands = [
+        "!light",
+        "!Light",
+        "!lights",
+        "!Lights",
+    ]
+    command = data.GetParam(0).lower()
     #Don't fire if wasn't a chat message or command doesn't match
-    if not data.IsChatMessage() or data.GetParam(0).lower() != ScriptSettings.Command:
+    if not data.IsChatMessage():
         return
+    if command in commands:
+        #If user is on cooldown, send message and return
+        if Parent.IsOnUserCooldown(ScriptName,ScriptSettings.Command,data.User):
+            Parent.SendStreamMessage("Time Remaining " + str(Parent.GetUserCooldownDuration(ScriptName,ScriptSettings.Command,data.User)))
+            return
 
-    #If user is on cooldown, send message and return
-    if Parent.IsOnUserCooldown(ScriptName,ScriptSettings.Command,data.User):
-        Parent.SendStreamMessage("Time Remaining " + str(Parent.GetUserCooldownDuration(ScriptName,ScriptSettings.Command,data.User)))
-        return
+        #Masterlist of Colors
+        colors = { "pink": 60000,
+                "blue": 45000,
+                "red": 65000,
+                "yellow": 10000,
+                "green": 30000,
+                "cyan": 40000,
+                "purple": 50000,
+                "orange": 5000,
+                "random" : Parent.GetRandom(0, 65535)}
 
-    #Masterlist of Colors
-    colors = { "pink": 60000,
-            "blue": 45000,
-            "red": 65000,
-            "yellow": 10000,
-            "green": 30000,
-            "cyan": 40000,
-            "purple": 50000,
-            "orange": 5000,
-            "random" : Parent.GetRandom(0, 65535)}
+        baseurl = "http://192.168.1.2/api/vXwABODAYg1B03Uz15m2t12-7gxAUzejMupRudhF/lights/"
 
-    baseurl = "http://192.168.1.2/api/vXwABODAYg1B03Uz15m2t12-7gxAUzejMupRudhF/lights/"
-
-    #Masterlist of lights
-    lights = { "left" : baseurl + "10/state", "right" : baseurl + "11/state" }
-    
-
-    #   Check if the propper command is used, the command is not on cooldown and the user has permission to use the command
-    if Parent.HasPermission(data.User,ScriptSettings.Permission,ScriptSettings.Info):
-        Parent.BroadcastWsEvent("EVENT_MINE","{'show':false}")
-
-        light = data.GetParam(1).lower()
-
-        if light in lights:
-            lighturl = lights[light]
+        #Masterlist of lights
+        lights = { "left" : baseurl + "10/state", "right" : baseurl + "11/state" }
+        
+        #   Check if the proper command is used, the command is not on cooldown and the user has permission to use the command
+        if Parent.HasPermission(data.User,ScriptSettings.Permission,ScriptSettings.Info):
+            Parent.BroadcastWsEvent("EVENT_MINE","{'show':false}")
+            
+            light = data.GetParam(1).lower()
             color = colors[data.GetParam(2).lower()]
-            Parent.PutRequest(lighturl, {}, {"hue": color}, isJsonContent)
+            if light in lights:
+                lighturl = lights[light]
+                Parent.PutRequest(lighturl, {}, {"hue": color}, isJsonContent)
+                    
+            elif light == "both":
+                lighturl = lights["left"]
+                Parent.PutRequest(lighturl, {}, {"hue": color}, isJsonContent)
+                lighturl = lights["right"]
+                Parent.PutRequest(lighturl, {}, {"hue": color}, isJsonContent)
 
-            #Assume success -- Put user on timeout
-            Parent.SendStreamMessage(ScriptSettings.Response + Parent.GetDisplayName(data.User))  
-            Parent.AddUserCooldown(ScriptName,ScriptSettings.Command,data.User,ScriptSettings.Cooldown)  # Put the command on cooldown
-        
-        elif light == "list":
-            Parent.SendStreamMessage("Available Colors Are: " + ', '.join([i for i in colors.keys()]))
 
-        elif light == "help":
-            Parent.SendStreamMessage("How to use: !light (" + ' or '.join([i for i in lights.keys()]) + ") ('color')")
+                #Assume success -- Put user on timeout
+                Parent.SendStreamMessage(ScriptSettings.Response + Parent.GetDisplayName(data.User))  
+                Parent.AddUserCooldown(ScriptName,ScriptSettings.Command,data.User,ScriptSettings.Cooldown)  # Put the command on cooldown
+            
+            elif light == "list":
+                Parent.SendStreamMessage("Available Colors Are: " + ', '.join([i for i in colors.keys()]))
 
-        else:
-            Parent.SendStreamMessage("Sorry that is not a valid option, please ")
-        
-    return
+            elif light == "help":
+                Parent.SendStreamMessage("How to use: !light (" + ' or '.join([i for i in lights.keys()]) + ") ('color')")
+
+            else:
+                Parent.SendStreamMessage("Sorry that is not a valid option, please ")
+            
+        return
 
 #---------------------------
 #   [Required] Tick method (Gets called during every iteration even when there is no incoming data)
