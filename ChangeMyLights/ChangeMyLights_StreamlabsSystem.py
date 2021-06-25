@@ -19,7 +19,7 @@ ScriptName = "ChangeMyLights"
 Website = "https://www.streamlabs.com"
 Description = "!light [<left> | <right>] [<color>] will change the designated lights color."
 Creator = "PaulDHenson"
-Version = "2.0.0.1"
+Version = "2.0.0.2"
 isJsonContent = True
 #---------------------------
 #   Define Global Variables
@@ -49,14 +49,15 @@ def Init():
 #   [Required] Execute Data / Process messages
 #---------------------------
 def Execute(data):
-
+    commands = [
+        "!light",
+        "!Light",
+        "!lights",
+        "!Lights",
+    ]
+    command = data.GetParam(0).lower()
     #Don't fire if wasn't a chat message or command doesn't match
-    if not data.IsChatMessage() or data.GetParam(0).lower() != ScriptSettings.Command:
-        return
-
-    #If user is on cooldown, send message and return
-    if Parent.IsOnUserCooldown(ScriptName,ScriptSettings.Command,data.User):
-        Parent.SendStreamMessage("Time Remaining " + str(Parent.GetUserCooldownDuration(ScriptName,ScriptSettings.Command,data.User)))
+    if not data.IsChatMessage():
         return
 
     #Masterlist of Colors
@@ -107,7 +108,37 @@ def Execute(data):
         else:
             Parent.SendStreamMessage("Sorry that is not a valid option, please try again")
         
-    return
+        #   Check if the proper command is used, the command is not on cooldown and the user has permission to use the command
+        if Parent.HasPermission(data.User,ScriptSettings.Permission,ScriptSettings.Info):
+            Parent.BroadcastWsEvent("EVENT_MINE","{'show':false}")
+            
+            light = data.GetParam(1).lower()
+            color = colors[data.GetParam(2).lower()]
+            if light in lights:
+                lighturl = lights[light]
+                Parent.PutRequest(lighturl, {}, {"hue": color}, isJsonContent)
+                    
+            elif light == "both":
+                lighturl = lights["left"]
+                Parent.PutRequest(lighturl, {}, {"hue": color}, isJsonContent)
+                lighturl = lights["right"]
+                Parent.PutRequest(lighturl, {}, {"hue": color}, isJsonContent)
+
+
+                #Assume success -- Put user on timeout
+                Parent.SendStreamMessage(ScriptSettings.Response + Parent.GetDisplayName(data.User))  
+                Parent.AddUserCooldown(ScriptName,ScriptSettings.Command,data.User,ScriptSettings.Cooldown)  # Put the command on cooldown
+            
+            elif light == "list":
+                Parent.SendStreamMessage("Available Colors Are: " + ', '.join([i for i in colors.keys()]))
+
+            elif light == "help":
+                Parent.SendStreamMessage("How to use: !light (" + ' or '.join([i for i in lights.keys()]) + ") ('color')")
+
+            else:
+                Parent.SendStreamMessage("Sorry that is not a valid option, please ")
+            
+        return
 
 #---------------------------
 #   [Required] Tick method (Gets called during every iteration even when there is no incoming data)
