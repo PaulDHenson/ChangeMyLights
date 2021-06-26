@@ -7,6 +7,13 @@
       "tooltip": "The command that will be responded to.",
       "group": "Core"
     },
+    "Command2": {
+      "type": "textbox",
+      "value": "!lights",
+      "label": "Command2",
+      "tooltip": "The command that will be responded to.",
+      "group": "Core"
+    },
     "Permission": {
       "type": "dropdown",
       "value": "everyone",

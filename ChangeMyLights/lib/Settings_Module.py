@@ -8,7 +8,8 @@ class MySettings(object):
 			with codecs.open(settingsfile, encoding="utf-8-sig", mode="r") as f:
 				self.__dict__ = json.load(f, encoding="utf-8")
 		except:
-			self.Command = "!light"
+			self.Command  = "!light"
+			self.Command2 = "!lights"
 			self.Response = "The light has been changed by "
 			self.Cooldown = 5
 			self.Permission = "everyone"

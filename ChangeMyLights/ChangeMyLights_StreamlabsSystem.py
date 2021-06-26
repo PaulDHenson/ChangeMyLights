@@ -4,6 +4,7 @@
 import os
 import sys
 import json
+import time
 
 sys.path.append(os.path.join(os.path.dirname(__file__), "lib")) #point at lib folder for classes / references
 import clr
@@ -19,7 +20,7 @@ ScriptName = "ChangeMyLights"
 Website = "https://www.streamlabs.com"
 Description = "!light [<left> | <right>] [<color>] will change the designated lights color."
 Creator = "PaulDHenson"
-Version = "2.0.0.2"
+Version = "2.0.0.3"
 isJsonContent = True
 #---------------------------
 #   Define Global Variables
@@ -74,7 +75,8 @@ def Execute(data):
                 "cyan": 40000,
                 "purple": 50000,
                 "orange": 5000,
-                "random" : Parent.GetRandom(0, 65535)}
+                "random" : Parent.GetRandom(0, 65535)
+                }
 
         baseurl = "http://192.168.1.2/api/vXwABODAYg1B03Uz15m2t12-7gxAUzejMupRudhF/lights/"
 
@@ -86,22 +88,46 @@ def Execute(data):
             Parent.BroadcastWsEvent("EVENT_MINE","{'show':false}")
             
             light = data.GetParam(1).lower()
-            color = colors[data.GetParam(2).lower()]
+            if data.GetParam(2).isdigit() and (int(data.GetParam(2)) >= 0 and int(data.GetParam(2)) <= 65535):
+                color = int(data.GetParam(2))
+            elif data.GetParam(2).lower() in colors:
+                color = colors[data.GetParam(2).lower()]
+                if data.GetParam(2).lower() == "random":
+                    Parent.SendStreamMessage("The random hue # is: " + str(color))
+
             if light in lights:
                 lighturl = lights[light]
-                Parent.PutRequest(lighturl, {}, {"hue": color}, isJsonContent)
-                    
-            elif light == "both":
-                lighturl = lights["left"]
-                Parent.PutRequest(lighturl, {}, {"hue": color}, isJsonContent)
-                lighturl = lights["right"]
-                Parent.PutRequest(lighturl, {}, {"hue": color}, isJsonContent)
-
-
+                if data.GetParam(2).lower() == "strobe":
+                    bulbpwr = True
+                    for i in range(20):
+                        Parent.PutRequest(lighturl, {}, {"on": bulbpwr}, isJsonContent)
+                        bulbpwr = not bulbpwr
+                        time.sleep(.8)
+                else:
+                    Parent.PutRequest(lighturl, {}, {"hue": color}, isJsonContent)
                 #Assume success -- Put user on timeout
                 Parent.SendStreamMessage(ScriptSettings.Response + Parent.GetDisplayName(data.User))  
                 Parent.AddUserCooldown(ScriptName,ScriptSettings.Command,data.User,ScriptSettings.Cooldown)  # Put the command on cooldown
-            
+                    
+            elif light == "both":
+                if data.GetParam(2).lower() == "strobe":
+                    bulbpwr = True
+                    for i in range(19):
+                        lighturl = lights["left"]
+                        Parent.PutRequest(lighturl, {}, {"on": bulbpwr}, isJsonContent)
+                        lighturl = lights["right"]
+                        Parent.PutRequest(lighturl, {}, {"on": bulbpwr}, isJsonContent)
+                        bulbpwr = not bulbpwr
+                        time.sleep(.8)
+                else:
+                    lighturl = lights["left"]
+                    Parent.PutRequest(lighturl, {}, {"hue": color}, isJsonContent)
+                    lighturl = lights["right"]
+                    Parent.PutRequest(lighturl, {}, {"hue": color}, isJsonContent)
+                #Assume success -- Put user on timeout
+                Parent.SendStreamMessage(ScriptSettings.Response + Parent.GetDisplayName(data.User))  
+                Parent.AddUserCooldown(ScriptName,ScriptSettings.Command,data.User,ScriptSettings.Cooldown)  # Put the command on cooldown
+ 
             elif light == "list":
                 Parent.SendStreamMessage("Available Colors Are: " + ', '.join([i for i in colors.keys()]))
 
